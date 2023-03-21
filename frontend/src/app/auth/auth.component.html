@@ -1,0 +1,33 @@
+<div>
+    <h1>{{ loginMode ? 'Log In!' : 'Sign Up!' }}</h1>
+    
+    <button mat-raised-button color="accent" (click)="switchModes()"
+        [ngClass]="{ login : loginMode == true, signIn : loginMode == false }">
+            {{ loginMode ? 'Change to Sign Up' : 'Change to Log In' }}
+    </button>
+    
+    <br><br>
+    <!-- https://loading.io/css/ -->
+    <div *ngIf="isLoading" style="text-align: center;">
+        <app-loading-spinner></app-loading-spinner>
+    </div>
+
+    <form class="example-form" [formGroup]="loginForm" (ngSubmit)="submitForm()" *ngIf="!isLoading">
+        
+        <mat-form-field class="example-full-width">
+            <mat-label [ngClass]="{ login : loginMode == true, signIn : loginMode == false }">E-mail: </mat-label>
+            <input matInput type="text" placeholder="example@example.com" formControlName="email">
+            <mat-icon matSuffix>email</mat-icon>         
+            <mat-hint align="end">example@example.com</mat-hint>
+        </mat-form-field>
+        
+        <mat-form-field class="example-full-width">
+            <mat-label>Password: </mat-label>
+            <input matInput type="password" formControlName="password">
+            <mat-icon matSuffix>security</mat-icon>         
+        </mat-form-field>
+        
+        <button mat-raised-button color="primary" type="submit" [disabled]="!loginForm.valid">{{ loginMode ? 'Log In' : 'Sign Up' }}</button>
+   
+    </form>
+</div>

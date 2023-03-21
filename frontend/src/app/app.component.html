@@ -1,0 +1,39 @@
+<mat-sidenav-container class="sidenav-container" fullscreen>
+
+    <mat-sidenav style="padding:20px" #sidenav>
+
+        <mat-nav-list (click)="sidenav.close()">
+
+            <a mat-list-item routerLink="/auth" *ngIf="!isAuthenticated">
+                <mat-icon>login</mat-icon>
+                <span>Log in</span>
+            </a> 
+            <a mat-list-item routerLink="/auth" *ngIf="isAuthenticated" (click)="logout()">
+                <mat-icon>logout</mat-icon>
+                <span>Log Out</span>
+            </a> 
+            <a mat-list-item routerLink="/itinerary">
+                <mat-icon>flight_takeoff</mat-icon>
+                <span>Itinerary</span>
+            </a>
+            <a mat-list-item routerLink="/search">
+                <mat-icon>search</mat-icon>
+                <span>Search</span>
+            </a>
+
+        </mat-nav-list>
+
+    </mat-sidenav>
+
+    <mat-toolbar color="primary">
+        <button mat-icon-button (click)="sidenav.open()">
+            <mat-icon>menu</mat-icon>
+        </button>   
+        <span>Wander Log</span>
+    </mat-toolbar>
+    
+    <div style="margin:20px">
+        <router-outlet></router-outlet>
+    </div>
+
+</mat-sidenav-container>

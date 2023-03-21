@@ -1,0 +1,55 @@
+<h1>Where to?</h1>
+<form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
+
+    <mat-form-field style="width: 33%">
+        <mat-label>
+            Autocomplete: 
+        </mat-label>
+        <input matInput iwanAutocomplete (onAddressChange)="handleAddressChange($event)" type="text" formControlName="country" id="auto-input">
+        <mat-icon matSuffix>location_on</mat-icon>         
+    </mat-form-field>
+
+    <mat-form-field class="example-full-width">
+        <mat-label>
+            Where to?
+        </mat-label>
+        <input matInput placeholder="Where to?" formControlName="country">
+        <mat-icon matSuffix>location_on</mat-icon>         
+    </mat-form-field>
+
+    <br>
+    <br>
+
+
+    <mat-form-field class="example-form-field" appearance="fill">
+        <mat-label>Travel dates</mat-label>
+        <mat-date-range-input
+          [formGroup]="campaignOne"
+          [rangePicker]="campaignOnePicker"
+          [comparisonStart]="campaignOne.value.start"
+          [comparisonEnd]="campaignOne.value.end">
+          <input matStartDate placeholder="Start date" formControlName="start">
+          <input matEndDate placeholder="End date" formControlName="end">
+        </mat-date-range-input>
+        <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+        <mat-datepicker-toggle matIconSuffix [for]="campaignOnePicker"></mat-datepicker-toggle>
+        <mat-date-range-picker #campaignOnePicker></mat-date-range-picker>
+      </mat-form-field>
+
+    <!-- <mat-form-field>
+        <mat-label>From: </mat-label>
+        <mat-date-range-input type="date" formControlName="dateFrom"></mat-date-range-input>
+    </mat-form-field> -->
+
+    
+    <!-- <br>
+    <br>
+    <label>To: </label>
+    <input type="date" formControlName="dateTo">
+    <br>
+    <br> -->
+    <br>
+    <button mat-raised-button color="primary" type="submit">Go!</button>
+
+
+</form>

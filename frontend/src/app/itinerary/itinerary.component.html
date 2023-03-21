@@ -1,0 +1,114 @@
+<h1>{{ country }}</h1>
+<div *ngIf="search.dateFrom !== null">
+    <p>Date From: {{ search.dateFrom }}</p>
+    <p>Date To: {{ search.dateTo }}</p>
+</div>
+
+<h2>Trip Details</h2>
+
+<google-map
+    height="500px"
+    width="100%"
+    [zoom]="zoom"
+    [center]="center"
+    [options]="options">
+            <map-marker *ngFor="let markerPosition of markerPositions[selectedDayIndex]; let i = index"
+                    [position]="markerPosition"
+                    [options]="markerOptions[selectedDayIndex][i]"
+                    #marker="mapMarker"
+                    (mapClick)="openInfoWindow(marker, 'hello')">
+            </map-marker>
+
+            <!-- Uncomment if want to see directions on map -->
+            <div *ngIf="locationData[0][1]">
+                <map-directions-renderer *ngIf="(directionsResults$ | async) as directionsResults"
+                           [directions]="directionsResults"></map-directions-renderer>
+            </div>
+
+            <map-info-window>{{ infoContent }}</map-info-window>
+</google-map>
+<button (click)="zoomIn()">+</button><button (click)="zoomOut()">-</button>
+<button (click)="logCenter()">Log center</button>
+
+<br><img style="height: 200px" [src]="countryImg">
+<p>Expenses: </p>
+<p>Hotel information: </p>
+<p>Flight information: </p>
+
+<form [formGroup]="itinForm" (ngSubmit)="processForm()">
+      <div formArrayName="travelDays">
+        <div *ngFor="let travelDay of getTravelDays().controls; let dayIndex = index">
+        
+            <!-- CARD -->
+            <mat-card class="example-card">
+            <mat-card-header>
+                <mat-card-title>{{travelDates[dayIndex]}}</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+            <div [formGroupName]="dayIndex">
+                <div formArrayName="activities">
+                    <div *ngFor="let activity of getActivities(dayIndex).controls; let activityIndex = index">
+                        <div [formGroupName]="activityIndex">
+                            <br>
+                            <mat-form-field class="max-width">
+                                <mat-label> Title: </mat-label>
+                                <input matInput type="text" formControlName="title" (click)="changeDayOnMap(dayIndex, activityIndex)">
+                            </mat-form-field>
+                            <mat-form-field class="max-width">
+                                <mat-label> Location: </mat-label>
+                                <input matInput type="text" iwanSearchBox (click)="changeDayOnMap(dayIndex, activityIndex)" (onAddressChange)="handleAddressChange($event, dayIndex, activityIndex)" formControlName="location">
+                                <mat-icon>location_on</mat-icon>
+                            </mat-form-field>
+                            <br>
+                        </div>
+                        
+                        <!-- Only appears if a location exists -->
+                        <div *ngIf="locationData[dayIndex][activityIndex]">
+                            <!-- Must iterate through array to use in two-way binding -->
+                            <div *ngFor="let photo of locationData[dayIndex][activityIndex].photos; let photoIndex = index">
+                                    <img *ngIf="photoIndex === 0" 
+                                        src="{{photo.url}}" 
+                                        style="height: 150px">
+                            </div>
+                            <h2>{{locationData[dayIndex][activityIndex].name}}</h2><span *ngIf="locationData[dayIndex][activityIndex].rating">Rating: {{locationData[dayIndex][activityIndex].rating}} ({{locationData[dayIndex][activityIndex].user_ratings_total}})</span>
+                            <p>{{locationData[dayIndex][activityIndex].formatted_address}}</p>
+                            <div *ngIf="locationData[dayIndex][activityIndex].opening_hours?.weekday_text !== null">
+                                <p>Operating Hours: </p>
+                                <!-- {{locationData[dayIndex][activityIndex].opening_hours.open_now ? "Currently Open" : "Closed, please call or check again tomorrow!"}} -->
+                                <div *ngFor="let dayOfWeek of locationData[dayIndex][activityIndex].opening_hours?.weekday_text; let weekdayIndex = index">
+                                    <div [ngStyle]="{'font-weight': dayOfWeek.substring(0,3) == todayDate.substring(0,3) ? 'bold' : 'light'}">{{dayOfWeek}}</div>
+                                </div>
+                            </div><br>
+                            <p>{{locationData[dayIndex][activityIndex].international_phone_number}}</p>
+                            <a href="{{locationData[dayIndex][activityIndex].website}}" target="_blank">{{locationData[dayIndex][activityIndex].website}}</a>
+                            <br> 
+                            <button mat-raised-button color="warn" type="button" (click)="onDelete(dayIndex, activityIndex)"> Delete </button>                                             
+                        </div>
+                        <br>
+                        <div *ngIf="distanceFromOrigin[dayIndex][activityIndex] !== 'No data yet'">
+                            <h3>Distance: {{distanceFromOrigin[dayIndex][activityIndex]}}</h3>
+                            <h3>Travel time by car: {{timeTakenFromOrigin[dayIndex][activityIndex]}}</h3>
+                        </div>
+                        
+
+                    </div>
+                    <button mat-raised-button color="accent" type="button" (click)="onAddPlace(dayIndex)">Add a place to visit!</button>
+
+                </div>
+            </div>
+            </mat-card-content>
+
+
+            </mat-card>
+            <!-- CARD -->
+
+            <br>
+        </div>            
+    </div>
+
+    <br>
+    <button mat-raised-button color="primary" type="submit">Save Form</button>
+    <button mat-raised-button color="accent" type="button" (click)="retrieveData()">Retrieve Form</button>
+
+
+</form>
