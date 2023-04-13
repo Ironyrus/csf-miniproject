@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, Subject, tap, throwError, BehaviorSubject } from 'rxjs';
+import { SearchService } from '../search/search.service';
 import { authModel } from './auth.model';
 import { User } from './user.model';
 
@@ -11,7 +12,7 @@ export class AuthService{
 
     user = new BehaviorSubject<User>(null!);
     private tokenExpirationTimer: any;
-    constructor(private http: HttpClient, private router: Router) {}
+    constructor(private http: HttpClient, private router: Router, private searchService: SearchService) {}
 
     signup(email: string, password: string) {
         const headers = new HttpHeaders()
@@ -19,9 +20,14 @@ export class AuthService{
             .set('Access-Control-Allow-Origin', '*'); // Very important
         return this.http.post<authModel>('/signup', {email: email, password: password}, {headers: headers})
             .pipe(catchError((errorRes) => {
-                return throwError(() => {
-                    return new Error(errorRes.error.expiresIn);
-                });
+                return throwError(
+                //     () => {
+                //     alert(errorRes.error.result);
+                //     this.router.navigate(['/auth']);
+                //     return new Error(errorRes.error.result);
+                // }
+                () => {new Error('test')}
+                );
            }), tap(resData => {
             this.handleAuthentication(resData.username_returned, resData.token, resData.expiresIn);
            }));
@@ -45,6 +51,8 @@ export class AuthService{
     logout() {
         this.user.next(null!);
         localStorage.removeItem('userData');
+        localStorage.removeItem('searchModel');
+        this.searchService.deleteModel();
         this.router.navigate(['/auth'])
         if(this.tokenExpirationTimer) {
             clearTimeout(this.tokenExpirationTimer);
@@ -67,10 +75,13 @@ export class AuthService{
         
         if(loadedUser.token) {
             this.user.next(loadedUser);
+            const expirationDuration = new Date(userData._tokenExpiry).getTime() - new Date().getTime();
+            this.autoLogout(expirationDuration);
         }
     }
 
     autoLogout(expirationDuration: number){
+        console.log(expirationDuration / 60000 + " minutes to auto-logout");
         this.tokenExpirationTimer = setTimeout(() => {
             this.logout();
         }, expirationDuration);

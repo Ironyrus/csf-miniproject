@@ -1,19 +1,16 @@
 package angular.miniproject.controllers;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
+import java.util.UUID;
 
-import org.apache.catalina.connector.Response;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,7 +23,6 @@ import angular.miniproject.services.sqlService;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonValue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +31,8 @@ import com.mongodb.client.result.UpdateResult;
 @RestController
 public class backendController {
     
+    String token;
+
     @Autowired
     sqlService sqlService;
 
@@ -46,20 +44,21 @@ public class backendController {
     public ResponseEntity<String> login(@RequestBody Credentials credentials) {
         
         String result = sqlService.checkUserLogin(credentials);
-
+        String token = UUID.randomUUID().toString();
+        this.token = token;
         JsonObjectBuilder jBuilder = Json.createObjectBuilder()
             .add("mode", "login")
             .add("result", result)
             .add("username_returned", credentials.getEmail())
             .add("password_returned", credentials.getPassword())
-            .add("token", "token")
+            .add("token", token)
             .add("expiresIn", new Date().getTime() + 3600000 + "");
         JsonObject jOut = jBuilder.build();
 
         if(result.equals("success")){
             return ResponseEntity.status(HttpStatus.OK).body(jOut.toString());
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jOut.toString());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(jOut.toString());
         }
 
     }
@@ -68,15 +67,15 @@ public class backendController {
     @CrossOrigin(origins="*")
     public ResponseEntity<String> signup(@RequestBody Credentials credentials) {
 
-        int result = sqlService.signupUser(credentials);
+        String result = sqlService.signupUser(credentials);
         
         JsonObjectBuilder jBuilder = Json.createObjectBuilder()
             .add("mode", "signup")
-            .add("result", result)
+            .add("result", result) //Success or Duplicate Email Entered
             .add("username_returned", credentials.getEmail())
             .add("password_returned", credentials.getPassword());
         JsonObject jOut = jBuilder.build();
-        if(result == 1)
+        if(result.equals("Success"))
             return ResponseEntity.status(HttpStatus.OK).body(jOut.toString());
         else
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(jOut.toString());
@@ -84,23 +83,33 @@ public class backendController {
 
     @PostMapping(path = "/addMapModel", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins="*")
-    public ResponseEntity<String> addMapModel(@RequestBody MapModel mapModel) {
+    public ResponseEntity<String> addMapModel(@RequestBody MapModel mapModel, @RequestParam String email) {
 
-        System.out.println(mapModel.getCountryName());
-
-        UpdateResult result = mongoService.addTravelItinerary(mapModel, "64127a978d3802584c3d9686");
-
+        MapModel mapModelCheck = mongoService.getTravelItinerary(email);
+        if(mapModelCheck.getCountryName() != null){
+            UpdateResult result = mongoService.updateTravelItinerary(mapModel, email);
+            System.out.println("Map was updated!");
+        } else {
+            Document d = mongoService.addTravelItinerary(mapModel, email);
+            System.out.println("New map inserted!");
+        }
+        
         return null;
     }
 
-    @GetMapping(path="/getMapModel", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path="/getMapModel/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
     @CrossOrigin(origins="*")
-    public ResponseEntity<String> getMapModel(@RequestParam String auth) {
-        String id = "64127a978d3802584c3d9686";
-        System.out.println("auth: " + auth);
-        MapModel mapModel = mongoService.getTravelItinerary(id);
-
-        // System.out.println(mapModel.getLocationData()[0][0]);
+    public ResponseEntity<String> getMapModel(@RequestParam String auth, @PathVariable String email) {
+        
+        MapModel mapModel;
+        if(this.token.trim().equals(auth.trim())){
+            mapModel = mongoService.getTravelItinerary(email);
+            System.out.println("Authentication passed. Fetching data...");
+        }
+        else{
+            JsonObject errorJson = Json.createObjectBuilder().add("ERROR", "INVALID TOKEN").build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorJson.toString());
+        }
 
         String countryName = "";
         String dateTo = "";

@@ -1,7 +1,8 @@
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
-import { exhaustMap, take } from "rxjs";
+import { BehaviorSubject, exhaustMap, take, tap } from "rxjs";
 import { AuthService } from "../auth/auth.service";
+import { User } from "../auth/user.model";
 import { location } from './itineraryModels/locationModel';
 import { MapModel } from './itineraryModels/MapModel';
 
@@ -9,13 +10,20 @@ import { MapModel } from './itineraryModels/MapModel';
 
 export class MapService {
 
+    mapModel = new BehaviorSubject<MapModel>(null!);
+
     constructor(private http: HttpClient, private authService: AuthService) {}
 
     saveMapModel(mapModel: MapModel) {
+      var user!: User;
+      this.authService.user.subscribe((data) => {
+          user = data;
+          console.log(user);
+      });
       const headers = new HttpHeaders()
             .set('content-type', 'application/json')
             .set('Access-Control-Allow-Origin', '*'); // Very important
-        return this.http.post<typeof mapModel>('/addMapModel', mapModel, {headers: headers});
+        return this.http.post<typeof mapModel>('/addMapModel', mapModel, {headers: headers, params: new HttpParams().set('email', user.username_returned)});
     }
 
     getMapModel() {
@@ -24,10 +32,15 @@ export class MapService {
             .set('Access-Control-Allow-Origin', '*'); // Very important
 
       return this.authService.user.pipe(take(1), exhaustMap(user => {
-        return this.http.get<MapModel>('/getMapModel', {headers: headers, 
-            params: new HttpParams().set('auth', user.token!)
-            });
-      }));
+        const token = user ? user.token : "token is empty";
+        const username = user ? user.username_returned : "username is empty";
+        const url = "/getMapModel/" + username;
+        return this.http.get<MapModel>(url, {headers: headers, 
+            params: new HttpParams().set('auth', token!)
+            }).pipe(tap(data => {
+                this.mapModel.next(data)
+            }));
+        }));
       
     }
 
@@ -94,5 +107,11 @@ export class MapService {
         //   timeTakenFromOrigin: mapModel.timeTakenFromOrigin,
         //   locationData: mapModel.timeTakenFromOrigin
         // }
+    }
+
+    handleGetMaps() {
+      this.getMapModel().subscribe(data => {
+        this.mapModel.next(data);
+      });
     }
 }

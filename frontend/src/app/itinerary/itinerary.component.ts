@@ -1,14 +1,15 @@
-import { map, Observable } from 'rxjs';
+import { map, Observable, Subscription } from 'rxjs';
 import { searchModel } from '../search/search.model';
 import { DateService } from './itinerary.date.service';
 import { SearchService } from '../search/search.service';
 import { PhotoRequest } from './itineraryModels/imgModel';
 import { location } from './itineraryModels/locationModel';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { MapInfoWindow, MapMarker, GoogleMap, MapDirectionsService } from '@angular/google-maps';
 import { MapService } from './itinerary.map.service';
 import { MapModel } from './itineraryModels/MapModel';
+import { Router } from '@angular/router';
 // Dragging and Dropping itinerary
 // https://phamhuuhien.medium.com/how-to-create-drag-and-drop-accordion-list-in-angular-b75dd004bb4e
 
@@ -23,7 +24,9 @@ export interface MapDirectionsResponse {
   styleUrls: ['./itinerary.component.css']
 })
 
-export class ItineraryComponent implements OnInit{
+export class ItineraryComponent implements OnInit, OnDestroy{
+  
+  private mapSub!: Subscription;
 
   // Google Maps (https://timdeschryver.dev/blog/google-maps-as-an-angular-component#putting-it-all-together)
   @ViewChild(GoogleMap, { static: false }) map!: GoogleMap;
@@ -47,6 +50,7 @@ export class ItineraryComponent implements OnInit{
   directionsResults$!: Observable<google.maps.DirectionsResult|undefined>;
   distanceFromOrigin: any[][] = [[]];
   timeTakenFromOrigin: any[][] = [[]];
+  showDirections: boolean = false;
 
   places!: location;
   country: string = "Country Text Here";
@@ -67,7 +71,8 @@ export class ItineraryComponent implements OnInit{
               private searchService: SearchService,
               private dateService: DateService,
               private mapDirectionsService: MapDirectionsService,
-              private mapService: MapService) {}
+              private mapService: MapService,
+              private router: Router) {}
               
   getTravelDays(): FormArray {
       return this.itinForm.get("travelDays") as FormArray;
@@ -106,8 +111,15 @@ export class ItineraryComponent implements OnInit{
       this.getActivities(dayIndex).removeAt(index);
   }
 
+  ngOnDestroy() {
+      this.mapSub.unsubscribe();
+  }
+
   // Upon loading component
   ngOnInit() {
+    this.mapSub = this.mapService.mapModel.subscribe(mapModel => {
+        this.mapModel = mapModel;
+    });
     // Google Maps 
     navigator.geolocation.getCurrentPosition((position) => {
       this.center = {
@@ -117,34 +129,59 @@ export class ItineraryComponent implements OnInit{
     });
 
     // Getting data from previous page
-    this.search = this.searchService.getModel();
-    this.country = this.search.country;
-    this.countryImg = this.search.imgUrl;
-    var numOfDays = ((+this.search.dateTo - +this.search.dateFrom) / 86400000) + 1;
-    this.travelDates = <string[]>this.dateService.getTravelDates(this.search.dateFrom + "", this.search.dateTo + "");
+    // From prev page
+    try {
+      this.search = this.searchService.getModel()!;
+      this.country = this.search.country;
+      localStorage.setItem("searchModel", JSON.stringify(this.search));
+    } // Not from prev page
+    catch {
+      this.country = "Country Text Here";
+    }
+
+    // From prev page
+    if((this.country) !== "Country Text Here") {
+      console.log(">>> User wants to create new trip");
+      this.country = this.search.country;
+      this.countryImg = this.search.imgUrl;
+      var numOfDays = ((+this.search.dateTo - +this.search.dateFrom) / 86400000) + 1;
+      this.travelDates = <string[]>this.dateService.getTravelDates(this.search.dateFrom + "", this.search.dateTo + "");
+    } else if((this.country) === "Country Text Here" && this.mapModel.countryName == "\"null\""){
+        if(localStorage.getItem("searchModel") === null){
+          alert("No Itinerary Found!");
+          this.router.navigate(['/search']);
+        } else {
+          console.log(">>> Retrieving from LocalStorage");
+          this.search = JSON.parse(localStorage.getItem('searchModel')!);
+          this.country = this.search.country; 
+          this.search.dateFrom = new Date(this.search.dateFrom);
+          this.search.dateTo = new Date(this.search.dateTo);
+          this.countryImg = this.search.imgUrl;
+          this.searchService.setModel(this.search);
+        }
+    } else {
+      console.log(">>> Retrieving from DB");
+      this.search = {
+        country: 'Catch error detected',
+        dateTo: new Date(),
+        dateFrom: new Date(),
+        imgUrl: ''
+      }
+      this.searchService.setModel(this.search);
+      this.retrieveData();
+    }
 
     this.itinForm = this.fb.group({
         travelDays: this.fb.array([])
       });
 
+    this.travelDates = <string[]>this.dateService.getTravelDates(this.search.dateFrom + "", this.search.dateTo + "");
     // *** Get travelDates from database ***
     for (let index = 0; index < this.travelDates.length; index++) {
         this.addTravelDaytoFormArray();
       }
   }
 
-  zoomIn() {
-    if (this.zoom < this.options.maxZoom!) this.zoom++;
-  }
- 
-  zoomOut() {
-    if (this.zoom > this.options.minZoom!) this.zoom--;
-  }
- 
-  logCenter() {
-    console.log(JSON.stringify(this.map.getCenter()));
-  }
- 
   // When adding new location in itinerary, new map marker added
   addMapMarker(lat: number, lon: number, dayIndex: number, activityIndex: number) {
     const temp = {
@@ -169,8 +206,9 @@ export class ItineraryComponent implements OnInit{
   }
 
   // Dynamic function, as and when user clicks, info window opens. Works.
-  openInfoWindow(marker: MapMarker, content: any) {
-    this.infoContent = content;
+  openInfoWindow(marker: MapMarker, selectedDayIndex: number, selectedActivityIndex: number) {
+    console.log(marker);
+    this.infoContent = 'Day: ' + selectedDayIndex + ' Act: ' + selectedActivityIndex;
     this.info.open(marker);
   }
 
@@ -195,31 +233,30 @@ export class ItineraryComponent implements OnInit{
   onDelete(dayIndex: number, activityIndex: number) {
     this.removeActivity(dayIndex, activityIndex);
     this.mapService.removeActivity(dayIndex, activityIndex, this.mapModel);
-    
     }
 
   retrieveData() {
   const result2 = this.mapService.getMapModel();
       result2.subscribe((data) => {
-        if(data != null)
-          this.mapModel = data;
-        this.mapModel = data;
-        this.mapModel = {
-          countryName: data.countryName,
-          dateTo: JSON.parse(data.dateTo),
-          dateFrom: JSON.parse(data.dateFrom),
-          markerPositions: JSON.parse(<string><unknown>data.markerPositions),
-          markerOptions: JSON.parse(<string><unknown>data.markerOptions),
-          distanceFromOrigin: JSON.parse(<string><unknown>data.distanceFromOrigin),
-          timeTakenFromOrigin: JSON.parse(<string><unknown>data.timeTakenFromOrigin),
-          locationData: JSON.parse(<string><unknown>data.locationData)
+        if(data.countryName !== null || data.countryName !== undefined) {
+          this.mapModel = {
+            countryName: JSON.parse(data.countryName),
+            dateTo: JSON.parse(data.dateTo),
+            dateFrom: JSON.parse(data.dateFrom),
+            markerPositions: JSON.parse(<string><unknown>data.markerPositions),
+            markerOptions: JSON.parse(<string><unknown>data.markerOptions),
+            distanceFromOrigin: JSON.parse(<string><unknown>data.distanceFromOrigin),
+            timeTakenFromOrigin: JSON.parse(<string><unknown>data.timeTakenFromOrigin),
+            locationData: JSON.parse(<string><unknown>data.locationData)
+          }
         }
-        this.handleLoadExistingUser(this.mapModel);
-
+        
+        this.mapModel = this.handleLoadExistingUser(this.mapModel);
+        this.country = this.mapModel.countryName;
         this.search.dateFrom = new Date(this.mapModel.dateFrom);
         this.search.dateTo = new Date(this.mapModel.dateTo);
-      }); 
-      console.log(this.mapModel);
+        this.searchService.setModel(this.search);
+      });
   }
 
   processForm() {
@@ -251,19 +288,16 @@ export class ItineraryComponent implements OnInit{
         this.handleAddressChange(mapModel.locationData[dayIndex][activityIndex], dayIndex, activityIndex);
       }
     }
-
     this.mapModel = mapModel;
-  }
-
-  initializeMapLocations() {
-
+    return mapModel;
   }
 
   handleAddressChange(event: location, dayIndex: number, activityIndex: number) {
     this.todayDate = (this.todayDate + "").substring(0, 3);
     this.places = event;
     this.getActivities(dayIndex).at(activityIndex).get('title')?.patchValue(this.places.name);
-    
+    this.getActivities(dayIndex).at(activityIndex).get('location')?.patchValue(this.places.name);
+
     // Populating each location with data
     this.locationData[dayIndex][activityIndex] = this.places;
     // When we click on the respective day inputs, the map will pan to the respective day
@@ -282,6 +316,7 @@ export class ItineraryComponent implements OnInit{
     } catch (error) {
       console.log("Error due to retrieving LatLng from database and not inputting new location");
     }
+
     try {
       // For when getting photos from database, since data from database does not have url() method
       this.locationData[dayIndex][activityIndex].photos[0].url = this.locationData[dayIndex][activityIndex].photos[0].getUrl(this.photoRequest);
@@ -332,8 +367,6 @@ export class ItineraryComponent implements OnInit{
       latLng = new google.maps.LatLng(<number><unknown>this.mapModel.locationData[dayIndex][activityIndex].geometry.location.lat,
         <number><unknown>this.mapModel.locationData[dayIndex][activityIndex].geometry.location.lng)
     } catch (error) {}
-    console.log(latLng.lat());
-    console.log(latLng.lng());
     
     this.map.panTo(latLng);
     this.selectedDayIndex = dayIndex;
@@ -357,5 +390,9 @@ export class ItineraryComponent implements OnInit{
     } catch (error) {
       console.log("Changing address but destination on directions marker not created yet - error caught");
     }
+  }
+
+  toggleDirections() {
+    this.showDirections = !this.showDirections;
   }
 }

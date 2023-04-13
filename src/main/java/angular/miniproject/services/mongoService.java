@@ -1,5 +1,6 @@
 package angular.miniproject.services;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,11 +14,15 @@ public class mongoService {
     @Autowired
     mongodbRepo mongoRepo;
 
-    public UpdateResult addTravelItinerary(MapModel mapModel, String id) {
-        return mongoRepo.addTravelItinerary(mapModel, id);
+    public Document addTravelItinerary(MapModel mapModel, String email) {
+        return mongoRepo.addTravelItinerary(mapModel, email);
     }
 
-    public MapModel getTravelItinerary(String id) {
-        return mongoRepo.getTravelItinerary(id);
+    public UpdateResult updateTravelItinerary(MapModel mapModel, String email) {
+        return mongoRepo.updateTravelItinerary(mapModel, email);
+    }
+
+    public MapModel getTravelItinerary(String email) {
+        return mongoRepo.getTravelItinerary(email);
     }
 }

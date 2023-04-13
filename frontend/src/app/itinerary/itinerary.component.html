@@ -1,4 +1,5 @@
 <h1>{{ country }}</h1>
+<br><img style="height: 200px" [src]="countryImg">
 <div *ngIf="search.dateFrom !== null">
     <p>Date From: {{ search.dateFrom }}</p>
     <p>Date To: {{ search.dateTo }}</p>
@@ -7,6 +8,7 @@
 <h2>Trip Details</h2>
 
 <google-map
+    id="map"
     height="500px"
     width="100%"
     [zoom]="zoom"
@@ -16,21 +18,18 @@
                     [position]="markerPosition"
                     [options]="markerOptions[selectedDayIndex][i]"
                     #marker="mapMarker"
-                    (mapClick)="openInfoWindow(marker, 'hello')">
+                    (mapClick)="openInfoWindow(marker, selectedDayIndex, i)">
             </map-marker>
 
             <!-- Uncomment if want to see directions on map -->
-            <div *ngIf="locationData[0][1]">
+            <div *ngIf="locationData[0][1] && showDirections == true">
                 <map-directions-renderer *ngIf="(directionsResults$ | async) as directionsResults"
                            [directions]="directionsResults"></map-directions-renderer>
             </div>
 
             <map-info-window>{{ infoContent }}</map-info-window>
 </google-map>
-<button (click)="zoomIn()">+</button><button (click)="zoomOut()">-</button>
-<button (click)="logCenter()">Log center</button>
-
-<br><img style="height: 200px" [src]="countryImg">
+<br><button mat-raised-button color="accent" (click)="toggleDirections()">Show/Hide Directions</button><br><br>
 <p>Expenses: </p>
 <p>Hotel information: </p>
 <p>Flight information: </p>
@@ -110,5 +109,6 @@
     <button mat-raised-button color="primary" type="submit">Save Form</button>
     <button mat-raised-button color="accent" type="button" (click)="retrieveData()">Retrieve Form</button>
 
-
 </form>
+
+<ul id="results"></ul>

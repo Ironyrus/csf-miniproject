@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { catchError } from 'rxjs/operators';
-import { Observable, throwError } from 'rxjs';
+import { Observable, Subscription, throwError } from 'rxjs';
 import { authModel } from './auth.model';
 import { AuthService } from './auth.service';
 
@@ -18,12 +18,20 @@ export class AuthComponent implements OnInit {
     loginMode!: boolean;
     authModel!: authModel;
     isLoading: boolean = false;
+    authObs!: Observable<authModel>;
 
     constructor(private fb: FormBuilder, 
                 private authService: AuthService,
                 private router: Router) {}
+    private userSub!: Subscription;
 
     ngOnInit() {
+      var userData = localStorage.getItem('userData');
+      if(userData !== null){
+        alert('Already logged in! Redirecting to search page.');
+        this.router.navigate(['/search']);
+      }
+
       this.loginForm = this.fb.group({
           email: this.fb.control<string>('', [Validators.required, Validators.email]),
           password: this.fb.control<string>('', [Validators.required])
@@ -37,14 +45,19 @@ export class AuthComponent implements OnInit {
         this.authService
           .login(this.loginForm.get('email')?.value, 
               this.loginForm.get('password')?.value)
-          .subscribe((data) => {
+          .subscribe({next: (data) => {
               this.authModel = data;
               console.log(this.authModel);
               this.loggedIn = true;
               setInterval(() => {this.isLoading = false}, 500);
               this.router.navigate(['/search']);
               alert('Successfully logged in!');
-           });
+           }, error: (error) => {
+              this.isLoading = false;
+              console.log(error);
+              alert("Username or Password incorrect!");
+           }
+          });
       } else {
           this.authService
           .signup(this.loginForm.get('email')?.value, 

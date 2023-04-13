@@ -3,8 +3,8 @@ import { searchModel } from "./search.model";
 
 @Injectable({providedIn: 'root'})
 export class SearchService {
-
-    searchModel!: searchModel;
+    fromPrevious: boolean = false;
+    searchModel!: searchModel | null;
 
     public getModel() {
         return this.searchModel;
@@ -12,5 +12,9 @@ export class SearchService {
 
     public setModel(searchModel: searchModel) {
         this.searchModel = searchModel;
+    }
+
+    public deleteModel() {
+        this.searchModel = null;
     }
 }

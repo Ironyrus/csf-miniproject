@@ -17,8 +17,9 @@ public class sqlRepo {
     @Autowired
     JdbcTemplate template;
 
-    public int signupUser(Credentials credentials) {
-        return template.update(Queries.SQL_SIGNUP, credentials.getEmail(), credentials.getPassword());
+    public String signupUser(Credentials credentials) {
+        template.update(Queries.SQL_SIGNUP, credentials.getEmail(), credentials.getPassword());
+        return "Success";
     }
 
     public Credentials checkUserLogin(Credentials credentials) {

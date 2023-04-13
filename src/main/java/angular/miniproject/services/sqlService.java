@@ -14,16 +14,15 @@ public class sqlService {
     @Autowired
     sqlRepo sqlRepo;
 
-    public int signupUser(Credentials credentials) {
-        int result = 0;
+    public String signupUser(Credentials credentials) {
+        String result = "";
         try {
             result = sqlRepo.signupUser(credentials);
-            result = 1;
         } catch (Exception e) {
             System.out.println("Error with signing up!");
             if(e.getMessage().contains("Duplicate entry"))
                 System.out.println("Duplicate Email entered");
-            result = 0;
+            result = "Duplicate Email Entered";
         }
         return result;
     }

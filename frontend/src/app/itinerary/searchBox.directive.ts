@@ -34,6 +34,7 @@ export class searchBoxDirective implements AfterViewInit{
     this.searchBox.addListener("places_changed", () => {
         this.selected();
     });
+
  }
 
  private selected() {
