@@ -14,6 +14,7 @@ const appRoutes: Routes = [
     // ] },
     { path: 'search', component: SearchComponent },
     { path: 'auth', component: AuthComponent },
+    { path: 'itinerary/:country', component: ItineraryComponent},
     { path: 'itinerary', component: ItineraryComponent, 
         canActivate: [AuthGuard, ItineraryGuard] 
     },

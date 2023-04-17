@@ -1,9 +1,12 @@
 package angular.miniproject.models;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 
 public class MapModel {
+    private boolean[][] isDetailHidden;
+    private String countryImg;
     private String countryName;
     private String dateTo;
     private String dateFrom;
@@ -12,6 +15,20 @@ public class MapModel {
     private String[][] distanceFromOrigin;
     private String[][] timeTakenFromOrigin;
     private Map[][] locationData;
+
+    public boolean[][] getIsDetailHidden() {
+        return isDetailHidden;
+    }
+    public void setIsDetailHidden(boolean[][] isDetailHidden) {
+        this.isDetailHidden = isDetailHidden;
+    }
+
+    public String getCountryImg() {
+        return countryImg;
+    }
+    public void setCountryImg(String countryImg) {
+        this.countryImg = countryImg;
+    }
 
     public String getDateTo() {
         return dateTo;
@@ -61,4 +78,15 @@ public class MapModel {
     public void setCountryName(String countryName) {
         this.countryName = countryName;
     }
+
+    @Override
+    public String toString() {
+        return "MapModel [isDetailHidden=" + Arrays.toString(isDetailHidden) + ", countryImg=" + countryImg
+                + ", countryName=" + countryName + ", dateTo=" + dateTo + ", dateFrom=" + dateFrom
+                + ", markerPositions=" + Arrays.toString(markerPositions) + ", markerOptions="
+                + Arrays.toString(markerOptions) + ", distanceFromOrigin=" + Arrays.toString(distanceFromOrigin)
+                + ", timeTakenFromOrigin=" + Arrays.toString(timeTakenFromOrigin) + ", locationData="
+                + Arrays.toString(locationData) + "]";
+    }
+    
 }

@@ -1,6 +1,8 @@
 import { location } from '../itineraryModels/locationModel';
 
 export interface MapModel {
+    isDetailHidden: boolean[][],
+    countryImg: string,
     countryName: string,
     dateTo: string,
     dateFrom: string,

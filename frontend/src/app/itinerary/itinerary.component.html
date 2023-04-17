@@ -1,3 +1,4 @@
+
 <h1>{{ country }}</h1>
 <br><img style="height: 200px" [src]="countryImg">
 <div *ngIf="search.dateFrom !== null">
@@ -40,8 +41,15 @@
         
             <!-- CARD -->
             <mat-card class="example-card">
-            <mat-card-header>
+            <mat-card-header style="display: flex; justify-content: space-between;">
                 <mat-card-title>{{travelDates[dayIndex]}}</mat-card-title>
+                <div>
+                    <mat-icon 
+                        style="cursor:pointer"
+                        matTooltip="Delete {{travelDates[dayIndex]}}?"
+                        (click)="onDeleteDay(dayIndex)"
+                        >delete</mat-icon>
+                </div>
             </mat-card-header>
             <mat-card-content>
             <div [formGroupName]="dayIndex">
@@ -62,6 +70,7 @@
                         </div>
                         
                         <!-- Only appears if a location exists -->
+                        
                         <div *ngIf="locationData[dayIndex][activityIndex]">
                             <!-- Must iterate through array to use in two-way binding -->
                             <div *ngFor="let photo of locationData[dayIndex][activityIndex].photos; let photoIndex = index">
@@ -69,27 +78,40 @@
                                         src="{{photo.url}}" 
                                         style="height: 150px">
                             </div>
-                            <h2>{{locationData[dayIndex][activityIndex].name}}</h2><span *ngIf="locationData[dayIndex][activityIndex].rating">Rating: {{locationData[dayIndex][activityIndex].rating}} ({{locationData[dayIndex][activityIndex].user_ratings_total}})</span>
-                            <p>{{locationData[dayIndex][activityIndex].formatted_address}}</p>
-                            <div *ngIf="locationData[dayIndex][activityIndex].opening_hours?.weekday_text !== null">
-                                <p>Operating Hours: </p>
-                                <!-- {{locationData[dayIndex][activityIndex].opening_hours.open_now ? "Currently Open" : "Closed, please call or check again tomorrow!"}} -->
-                                <div *ngFor="let dayOfWeek of locationData[dayIndex][activityIndex].opening_hours?.weekday_text; let weekdayIndex = index">
-                                    <div [ngStyle]="{'font-weight': dayOfWeek.substring(0,3) == todayDate.substring(0,3) ? 'bold' : 'light'}">{{dayOfWeek}}</div>
-                                </div>
-                            </div><br>
-                            <p>{{locationData[dayIndex][activityIndex].international_phone_number}}</p>
-                            <a href="{{locationData[dayIndex][activityIndex].website}}" target="_blank">{{locationData[dayIndex][activityIndex].website}}</a>
-                            <br> 
-                            <button mat-raised-button color="warn" type="button" (click)="onDelete(dayIndex, activityIndex)"> Delete </button>                                             
-                        </div>
-                        <br>
-                        <div *ngIf="distanceFromOrigin[dayIndex][activityIndex] !== 'No data yet'">
-                            <h3>Distance: {{distanceFromOrigin[dayIndex][activityIndex]}}</h3>
-                            <h3>Travel time by car: {{timeTakenFromOrigin[dayIndex][activityIndex]}}</h3>
-                        </div>
-                        
+                            <h2>{{locationData[dayIndex][activityIndex].name}}</h2>                                             
 
+                            <span *ngIf="locationData[dayIndex][activityIndex].rating">Rating: {{locationData[dayIndex][activityIndex].rating}} ({{locationData[dayIndex][activityIndex].user_ratings_total}})</span>
+                                <p>{{locationData[dayIndex][activityIndex].formatted_address}}</p>
+                            
+                            <mat-accordion>
+                                <mat-expansion-panel>
+                                    <mat-expansion-panel-header>
+                                <p style="cursor: pointer" (click)="toggleDetails(dayIndex, activityIndex)">
+                                    show/hide
+                                </p>
+                                </mat-expansion-panel-header>
+                                    <div *ngIf="locationData[dayIndex][activityIndex].opening_hours?.weekday_text !== null">
+                                        <p>Operating Hours: </p>
+                                        <!-- {{locationData[dayIndex][activityIndex].opening_hours.open_now ? "Currently Open" : "Closed, please call or check again tomorrow!"}} -->
+                                        <div *ngFor="let dayOfWeek of locationData[dayIndex][activityIndex].opening_hours?.weekday_text; let weekdayIndex = index">
+                                            <div [ngStyle]="{'font-weight': dayOfWeek.substring(0,3) == todayDate.substring(0,3) ? 'bold' : 'light'}">{{dayOfWeek}}</div>
+                                        </div>
+                                    </div><br>
+                                    <p>{{locationData[dayIndex][activityIndex].international_phone_number}}</p>
+                                    <a href="{{locationData[dayIndex][activityIndex].website}}" target="_blank">{{locationData[dayIndex][activityIndex].website}}</a>
+                                    <br> 
+                                </mat-expansion-panel>
+                            </mat-accordion>
+                            <br>
+                                <button mat-raised-button color="warn" type="button" (click)="onDelete(dayIndex, activityIndex)"> Delete Activity </button>                                             
+
+                            <br>
+                            <div *ngIf="activityIndex != 0">
+                                <h3>Distance: {{distanceFromOrigin[dayIndex][activityIndex]}}</h3>
+                                <h3>Travel time by car: {{timeTakenFromOrigin[dayIndex][activityIndex]}}</h3>
+                            </div>
+                        </div>
+                    <br>
                     </div>
                     <button mat-raised-button color="accent" type="button" (click)="onAddPlace(dayIndex)">Add a place to visit!</button>
 
@@ -107,7 +129,7 @@
 
     <br>
     <button mat-raised-button color="primary" type="submit">Save Form</button>
-    <button mat-raised-button color="accent" type="button" (click)="retrieveData()">Retrieve Form</button>
+    <button mat-raised-button color="accent" type="button" (click)="retrieveData('')">Retrieve Form</button>
 
 </form>
 

@@ -20,10 +20,11 @@ export class MapService {
           user = data;
           console.log(user);
       });
+      console.log(mapModel.isDetailHidden)
       const headers = new HttpHeaders()
             .set('content-type', 'application/json')
             .set('Access-Control-Allow-Origin', '*'); // Very important
-        return this.http.post<typeof mapModel>('/addMapModel', mapModel, {headers: headers, params: new HttpParams().set('email', user.username_returned)});
+        return this.http.post<typeof mapModel>('/addMapModel', mapModel, {headers: headers, params: new HttpParams().set('email', user.username_returned).set('country', mapModel.countryName)});
     }
 
     getMapModel() {
@@ -35,6 +36,11 @@ export class MapService {
         const token = user ? user.token : "token is empty";
         const username = user ? user.username_returned : "username is empty";
         const url = "/getMapModel/" + username;
+        const userData: {
+          username_returned: string,
+          _token: string,
+          _tokenExpiry: Date
+      } = JSON.parse(localStorage.getItem('userData')!);
         return this.http.get<MapModel>(url, {headers: headers, 
             params: new HttpParams().set('auth', token!)
             }).pipe(tap(data => {
@@ -44,7 +50,30 @@ export class MapService {
       
     }
 
-    initialize2dArray(countryName: string, dateTo: Date, dateFrom: Date, travelDays: number, activityDays: number[], locationData: location[][], markerOptions: google.maps.MarkerOptions[][], markerPositions: google.maps.LatLngLiteral[][], timeTakenFromOrigin: any[][], distanceFromOrigin: any[][]) {
+    getMapModelWithCountryName(country: string) {
+      const headers = new HttpHeaders()
+            .set('content-type', 'application/json')
+            .set('Access-Control-Allow-Origin', '*'); // Very important
+
+      return this.authService.user.pipe(take(1), exhaustMap(user => {
+        const token = user ? user.token : "token is empty";
+        const username = user ? user.username_returned : "username is empty";
+        const url = "/getMapModel2/" + username + "/" + country;
+        const userData: {
+          username_returned: string,
+          _token: string,
+          _tokenExpiry: Date
+      } = JSON.parse(localStorage.getItem('userData')!);
+        return this.http.get<MapModel>(url, {headers: headers, 
+            params: new HttpParams().set('auth', token!)
+            }).pipe(tap(data => {
+                this.mapModel.next(data)
+            }));
+        }));
+      
+    }
+
+    initialize2dArray(isDetailHidden: boolean[][], countryImg: string, countryName: string, dateTo: Date, dateFrom: Date, travelDays: number, activityDays: number[], locationData: location[][], markerOptions: google.maps.MarkerOptions[][], markerPositions: google.maps.LatLngLiteral[][], timeTakenFromOrigin: any[][], distanceFromOrigin: any[][]) {
         // Need to initialize 2d array so that we can properly add new days and activities
         for (let i = 0; i < travelDays; i++) {
           if(locationData[i] == null){
@@ -53,6 +82,8 @@ export class MapService {
             markerPositions[i] = [];
             timeTakenFromOrigin[i] = [];
             distanceFromOrigin[i] = [];
+
+            isDetailHidden[i] = [];
         }
           
         for (let j = 0; j < activityDays[i]; j++) {
@@ -71,11 +102,15 @@ export class MapService {
             markerPositions[i][j] = {lat: 0, lng: 0};
             timeTakenFromOrigin[i][j] = 'No data yet';
             distanceFromOrigin[i][j] = 'No data yet';
+
+            isDetailHidden[i][j] = false;
           }
         }
       }
 
       let mapModel: MapModel = {
+        isDetailHidden: isDetailHidden,
+        countryImg: countryImg,
         countryName: countryName,
         dateTo: dateTo + "",
         dateFrom: dateFrom + "",
@@ -88,14 +123,22 @@ export class MapService {
       return mapModel;
     }
 
+    removeDay(dayIndex: number, mapModel: MapModel){
+        mapModel.isDetailHidden.splice(dayIndex, 1);
+        mapModel.locationData.splice(dayIndex, 1);
+        mapModel.markerOptions.splice(dayIndex, 1);
+        mapModel.markerPositions.splice(dayIndex, 1);
+        mapModel.timeTakenFromOrigin.splice(dayIndex, 1);
+        mapModel.distanceFromOrigin.splice(dayIndex, 1);
+    }
+
     removeActivity(dayIndex: number, activityIndex: number, mapModel: MapModel) {
-        console.log(mapModel);
+        mapModel.isDetailHidden[dayIndex].splice(activityIndex, 1);
         mapModel.locationData[dayIndex].splice(activityIndex, 1);
         mapModel.markerOptions[dayIndex].splice(activityIndex, 1);
         mapModel.markerPositions[dayIndex].splice(activityIndex, 1);
         mapModel.timeTakenFromOrigin[dayIndex].splice(activityIndex, 1);
         mapModel.distanceFromOrigin[dayIndex].splice(activityIndex, 1);
-        console.log(mapModel);
 
         // var newMapModel: MapModel = newMapModel = {
         //   countryName: mapModel.countryName,

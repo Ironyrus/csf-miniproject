@@ -3,6 +3,7 @@ package angular.miniproject.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import angular.miniproject.models.Credentials;
@@ -18,8 +19,13 @@ public class sqlService {
         String result = "";
         try {
             result = sqlRepo.signupUser(credentials);
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
             System.out.println("Error with signing up!");
+            System.out.println(">>>>>>>");
+
+            System.out.println(e.getLocalizedMessage());            
+            System.out.println(">>>>>>>");
+
             if(e.getMessage().contains("Duplicate entry"))
                 System.out.println("Duplicate Email entered");
             result = "Duplicate Email Entered";

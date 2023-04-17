@@ -8,7 +8,7 @@ export class DateService {
     daysInMonthLeapYear = [31,29,31,30,31,30,31,31,30,31,30,31];
     leapyear = false;
     monthsInYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
+    daysInWeek = ['Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     // *** This function is deprecated, since we can simply subtract dates to determine number of days
     // checkDaysNumber(dateFrom: string, dateTo: string) {
         
@@ -68,9 +68,7 @@ export class DateService {
         console.log("Mth: " + monthFrom);
         console.log("Year: " + yearFrom);
         console.log("Day of Week: " + dayOfWeekFrom);
-
-        console.log(this.monthsInYear.indexOf("Mar"));
-
+        
         let dayTo = dateTo.substring(8, 10);
         let monthTo = dateTo.substring(4, 7);
         let yearTo = dateTo.substring(11,15);
@@ -88,28 +86,43 @@ export class DateService {
         var currMonth: string[] = [];
         // eg March 28 - April 4
         if(yearTo === yearFrom && this.monthsInYear.indexOf(monthTo) > this.monthsInYear.indexOf(monthFrom)) {
+
+            let dayIndex = this.daysInWeek.indexOf(dayOfWeekFrom.trim());
+            var day!: number;
             console.log("one month to the next");
             for (let index = +dayFrom; index <= this.daysInMonth[this.monthsInYear.indexOf(monthFrom)]; index++) {
+                day = dayIndex + index - +dayFrom;
+                if(day > 6)
+                    day -= 7;
                 if(index < 10)
-                    prevMonth.push("0" + index + " " + monthFrom + " " + yearFrom);
+                    prevMonth.push("0" + index + " " + monthFrom + " " + yearFrom  + " " + this.daysInWeek[day]);
                 else 
-                    prevMonth.push(index + " " + monthFrom + " " + yearFrom);
+                    prevMonth.push(index + " " + monthFrom + " " + yearFrom  + " " + this.daysInWeek[day]);
             }
-
+            dayIndex = day;
             for (let index = 1; index <= +dayTo; index++) {
+                var day = dayIndex + index;
+                if(day > 6)
+                    day -= 7;
                 if(index < 10)
-                    currMonth.push("0" + index + " " + monthTo + " " + yearTo);
+                    currMonth.push("0" + index + " " + monthTo + " " + yearTo + " " + this.daysInWeek[day]);
                 else
-                    currMonth.push(index + " " + monthTo + " " + yearTo);
+                    currMonth.push(index + " " + monthTo + " " + yearTo + " " + this.daysInWeek[day]);
             }
         }
         
         if(yearTo === yearFrom && monthTo == monthFrom) {
+
+            let dayIndex = this.daysInWeek.indexOf(dayOfWeekFrom.trim());
+
             for (let index = +dayFrom; index <= +dayTo; index++) {
+                var day = dayIndex + index - +dayFrom;
+                if(day > 6)
+                    day -= 7;
                 if(index < 10)
-                    prevMonth.push("0" + index + " " + monthFrom + " " + yearFrom);
+                    prevMonth.push("0" + index + " " + monthFrom + " " + yearFrom   + " " + this.daysInWeek[day]);
                 else
-                    prevMonth.push(index + " " + monthFrom + " " + yearFrom);
+                    prevMonth.push(index + " " + monthFrom + " " + yearFrom + " " + this.daysInWeek[day]);
             }
         }
 

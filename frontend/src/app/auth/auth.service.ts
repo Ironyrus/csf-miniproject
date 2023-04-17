@@ -20,14 +20,9 @@ export class AuthService{
             .set('Access-Control-Allow-Origin', '*'); // Very important
         return this.http.post<authModel>('/signup', {email: email, password: password}, {headers: headers})
             .pipe(catchError((errorRes) => {
-                return throwError(
-                //     () => {
-                //     alert(errorRes.error.result);
-                //     this.router.navigate(['/auth']);
-                //     return new Error(errorRes.error.result);
-                // }
-                () => {new Error('test')}
-                );
+                return throwError(() => {
+                    return new Error(errorRes.error.result);
+                  });
            }), tap(resData => {
             this.handleAuthentication(resData.username_returned, resData.token, resData.expiresIn);
            }));

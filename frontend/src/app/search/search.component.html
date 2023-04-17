@@ -39,3 +39,12 @@
     <button mat-raised-button color="primary" type="submit" [disabled]="!searchForm.valid">Go!</button>
 
 </form>
+
+<br><br>
+<h1>History</h1>
+<div *ngFor="let country of getCountries(); let i = index">
+    <button
+        mat-raised-button color="primary"
+        (click)="goToItinerary(country)">{{country}}</button><br>
+        <br>
+</div>

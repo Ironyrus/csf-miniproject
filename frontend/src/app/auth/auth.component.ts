@@ -62,16 +62,20 @@ export class AuthComponent implements OnInit {
           this.authService
           .signup(this.loginForm.get('email')?.value, 
                   this.loginForm.get('password')?.value)
-          .subscribe((data) => {
+          .subscribe({next: (data) => {
                 this.authModel = data;
-                console.log(this.authModel);
+                console.log(">>>> " + this.authModel);
                 setInterval(() => {this.isLoading = false}, 500);
                 this.router.navigate(['/search']);
                 if(this.authModel.result == '0') {
                   alert('Email already exists!');
                 } else
                   alert('Successfully signed up!');
-           });
+                }, error: (error) => {
+                  this.isLoading = false;
+                  alert(error);
+                }
+            });
       }
       
       // alert('form resetting now');

@@ -23,6 +23,9 @@ import {MatInput, MatInputModule} from '@angular/material/input';
 import {MatDatepickerModule} from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import {MatCardModule} from '@angular/material/card';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 // https://github.com/skynet2/ngx-google-places-autocomplete
 import { GooglePlaceModule } from 'ngx-google-places-autocomplete';
@@ -47,6 +50,7 @@ import { autocompleteDirective } from './itinerary/autocomplete.directive';
     ReactiveFormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
+    DragDropModule,
     MatFormFieldModule,
     MatSidenavModule,
     MatToolbarModule,
@@ -58,7 +62,9 @@ import { autocompleteDirective } from './itinerary/autocomplete.directive';
     MatInputModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatExpansionModule,
     MatCardModule,
+    MatTooltipModule,
     GooglePlaceModule,
     GoogleMapsModule
   ],
