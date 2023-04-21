@@ -16,14 +16,15 @@ public class redisRepo {
         System.out.println("key: " + email);
         System.out.println("value: " + token);
         try {
-            redisTemplate.opsForValue().set(email, token);
             String fetchToken = (String)redisTemplate.opsForValue().get(email);
-            
-            Boolean expirySet = redisTemplate.expireAt(email, expiry);
+
             if(fetchToken != null)
                 return 1;
-            else
-                return 0;
+            else {
+                redisTemplate.opsForValue().set(email, token);            
+                Boolean expirySet = redisTemplate.expireAt(email, expiry);
+                return 2;
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

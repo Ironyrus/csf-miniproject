@@ -61,7 +61,7 @@ public class travelController {
             .add("expiresIn", expiry.getTime() +  3600000 + "");
         JsonObject jOut = jBuilder.build();
         int redisResult = redisService.saveToken(token, credentials.getEmail(), new Date(expiry.getTime() +  3600000));
-        System.out.println("(Log in) Saving to redis... (1 for success, 0 for failed): " + redisResult);
+        System.out.println("(Log in) Saving to redis... (2 for new token entered, 1 for token exists, 0 for failed): " + redisResult);
         if(result.equals("success")){
             return ResponseEntity.status(HttpStatus.OK).body(jOut.toString());
         } else {
