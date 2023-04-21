@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
 import angular.miniproject.models.MapModel;
@@ -33,7 +34,13 @@ public class mongodbRepo {
         insert.put("distanceFromOrigin", mapModel.getDistanceFromOrigin());
         insert.put("timeTakenFromOrigin", mapModel.getTimeTakenFromOrigin());
         insert.put("locationData", mapModel.getLocationData());
-        return mongoTemplate.insert(insert, "mapsCollection");
+        Document d = new Document();
+        try{
+            d= mongoTemplate.insert(insert, "mapsCollection");
+        }catch (Exception e){
+            System.out.println("error 1");
+        }
+        return d;
     }
 
     public UpdateResult updateTravelItinerary(MapModel mapModel, String email) {
@@ -64,10 +71,13 @@ public class mongodbRepo {
                 .set("distanceFromOrigin", mapModel.getDistanceFromOrigin())
                 .set("timeTakenFromOrigin", mapModel.getTimeTakenFromOrigin())
                 .set("locationData", mapModel.getLocationData());
-        UpdateResult updateResult = mongoTemplate.updateFirst(q, updateOps, Document.class, "mapsCollection");
-        System.out.println(updateResult);
-
-        return updateResult;
+        try{
+            UpdateResult updateResult = mongoTemplate.updateFirst(q, updateOps, Document.class, "mapsCollection");
+            return updateResult;
+        }catch (Exception e){
+            System.out.println("error 2");
+        }
+        return null;
     }
 
     public MapModel getTravelItinerary(String email, List<String> countries) {
@@ -109,5 +119,20 @@ public class mongodbRepo {
             System.out.println(s);
         }
         return results;
+    }
+
+    public void deleteItinerary(String email, String country){
+        Criteria c = Criteria.where("email").is(email);
+        Query q = new Query(c);
+        Criteria c2 = Criteria.where("countryName").is(country);
+        q.addCriteria(c2);
+        DeleteResult deleteResult = mongoTemplate.remove(q, String.class, "mapsCollection");
+        System.out.println(deleteResult.getDeletedCount() + " records deleted");
+    }
+
+    public List<MapModel> getPassport(String email) {
+        Criteria c = Criteria.where("email").is(email);
+        Query q = new Query(c);
+        return mongoTemplate.find(q, MapModel.class, "mapsCollection");
     }
 }

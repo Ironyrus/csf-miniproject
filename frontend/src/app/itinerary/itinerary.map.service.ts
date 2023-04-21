@@ -5,6 +5,7 @@ import { AuthService } from "../auth/auth.service";
 import { User } from "../auth/user.model";
 import { location } from './itineraryModels/locationModel';
 import { MapModel } from './itineraryModels/MapModel';
+import { result } from "./itineraryModels/result";
 
 @Injectable({providedIn: 'root'})
 
@@ -24,7 +25,8 @@ export class MapService {
       const headers = new HttpHeaders()
             .set('content-type', 'application/json')
             .set('Access-Control-Allow-Origin', '*'); // Very important
-        return this.http.post<typeof mapModel>('/addMapModel', mapModel, {headers: headers, params: new HttpParams().set('email', user.username_returned).set('country', mapModel.countryName)});
+        return this.http.post<result>('/addMapModel', mapModel, {headers: headers, params: new HttpParams().set('email', user.username_returned).set('country', mapModel.countryName)});
+      
     }
 
     getMapModel() {
@@ -156,5 +158,20 @@ export class MapService {
       this.getMapModel().subscribe(data => {
         this.mapModel.next(data);
       });
+    }
+
+    deleteCountryMap(country: string) {
+      const headers = new HttpHeaders()
+            .set('content-type', 'application/json')
+            .set('Access-Control-Allow-Origin', '*'); // Very important
+
+      return this.authService.user.pipe(take(1), exhaustMap(user => {
+        const token = user ? user.token : "token is empty";
+        const username = user ? user.username_returned : "username is empty";
+        const url = "/deleteItinerary/" + username + "/" + country;
+        return this.http.delete<any>(url, {headers: headers, 
+            params: new HttpParams().set('auth', token!)
+            })
+        }));
     }
 }

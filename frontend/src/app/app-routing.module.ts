@@ -6,6 +6,7 @@ import { AuthGuard } from "./auth/auth.guard";
 import { ItineraryComponent } from "./itinerary/itinerary.component";
 import { ItineraryGuard } from "./itinerary/itinerary.guard";
 import { SearchComponent } from "./search/search.component";
+import { PassportComponent } from "./passport/passport.component";
 
 const appRoutes: Routes = [
     // { path: '', component: AppComponent, children: [
@@ -18,12 +19,13 @@ const appRoutes: Routes = [
     { path: 'itinerary', component: ItineraryComponent, 
         canActivate: [AuthGuard, ItineraryGuard] 
     },
+    { path: 'passport', component: PassportComponent},
     { path: '**', redirectTo: '/search'}
 ]
 
 @NgModule({
     imports: [
-        RouterModule.forRoot(appRoutes, {useHash: true})
+        RouterModule.forRoot(appRoutes, {useHash: true, onSameUrlNavigation: 'reload'})
     ],
     exports: [RouterModule]
 })

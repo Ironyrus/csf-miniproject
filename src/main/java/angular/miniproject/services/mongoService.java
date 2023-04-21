@@ -40,4 +40,12 @@ public class mongoService {
     public List<String> getCountries(String email, String country) {
         return mongoRepo.getCountries(email);
     }
+
+    public void deleteItinerary(String email, String country) {
+        mongoRepo.deleteItinerary(country, email);
+    }
+
+    public List<MapModel> getPassport(String email){
+        return mongoRepo.getPassport(email);
+    }
 }

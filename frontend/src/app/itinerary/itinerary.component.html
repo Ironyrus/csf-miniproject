@@ -43,13 +43,13 @@
             <mat-card class="example-card">
             <mat-card-header style="display: flex; justify-content: space-between;">
                 <mat-card-title>{{travelDates[dayIndex]}}</mat-card-title>
-                <div>
+                <!-- <div>
                     <mat-icon 
                         style="cursor:pointer"
                         matTooltip="Delete {{travelDates[dayIndex]}}?"
                         (click)="onDeleteDay(dayIndex)"
                         >delete</mat-icon>
-                </div>
+                </div> -->
             </mat-card-header>
             <mat-card-content>
             <div [formGroupName]="dayIndex">
@@ -129,7 +129,7 @@
 
     <br>
     <button mat-raised-button color="primary" type="submit">Save Form</button>
-    <button mat-raised-button color="accent" type="button" (click)="retrieveData('')">Retrieve Form</button>
+    <!-- <button mat-raised-button color="accent" type="button" (click)="retrieveData('')">Retrieve Form</button> -->
 
 </form>
 

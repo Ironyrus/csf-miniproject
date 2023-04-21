@@ -8,7 +8,7 @@ export class DateService {
     daysInMonthLeapYear = [31,29,31,30,31,30,31,31,30,31,30,31];
     leapyear = false;
     monthsInYear = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    daysInWeek = ['Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    daysInWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     // *** This function is deprecated, since we can simply subtract dates to determine number of days
     // checkDaysNumber(dateFrom: string, dateTo: string) {
         
@@ -114,7 +114,7 @@ export class DateService {
         if(yearTo === yearFrom && monthTo == monthFrom) {
 
             let dayIndex = this.daysInWeek.indexOf(dayOfWeekFrom.trim());
-
+            console.log("day index: " + dayIndex + " " + dayOfWeekFrom);
             for (let index = +dayFrom; index <= +dayTo; index++) {
                 var day = dayIndex + index - +dayFrom;
                 if(day > 6)

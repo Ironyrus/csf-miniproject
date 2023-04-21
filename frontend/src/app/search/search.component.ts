@@ -5,6 +5,8 @@ import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms'
 import { Router } from '@angular/router';
 import { searchModel } from './search.model';
 import { SearchService } from './search.service';
+import { MapService } from '../itinerary/itinerary.map.service';
+import {Title} from "@angular/platform-browser";
 
 // Using js in Angular
 //@ts-ignore
@@ -22,9 +24,11 @@ const year = today.getFullYear();
 
 export class SearchComponent implements OnInit {
 
+  title = "Search";
+
   private autocomplete: any;
   private country: any;
-  private countries!: string[];
+  countries!: string[];
   searchForm!: FormGroup;
   campaignOne = new FormGroup({
     start: new FormControl(new Date(today)),
@@ -33,8 +37,10 @@ export class SearchComponent implements OnInit {
   
   constructor(private fb: FormBuilder,
               private searchService: SearchService,
-              private router: Router) {
-      
+              private router: Router,
+              private mapService: MapService,
+              private titleService:Title) {
+      this.titleService.setTitle("Destination Search!");
               }
 
   ngOnInit() {
@@ -76,17 +82,19 @@ export class SearchComponent implements OnInit {
 
   }
 
-  // getMapModel() {
-  //   this.searchService.getMapModel().subscribe((data) => {
-  //     console.log(data);
-  //   });
-  // }
-
   getCountries(){
     return this.countries;
   }
 
   goToItinerary(country: string) {
     this.router.navigate(['/itinerary/', country]);
+  }
+
+  deleteItinerary(country: string) {
+    this.mapService.deleteCountryMap(country).subscribe(response => {
+      console.log(response);
+      alert('Itinerary for ' + country + ' deleted successfully!');
+      this.router.navigate(['/passport']);
+    })
   }
 }

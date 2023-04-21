@@ -1,4 +1,4 @@
-import { map, Observable, Subscription } from 'rxjs';
+import { catchError, map, Observable, Subscription, throwError } from 'rxjs';
 import { searchModel } from '../search/search.model';
 import { DateService } from './itinerary.date.service';
 import { SearchService } from '../search/search.service';
@@ -316,9 +316,16 @@ export class ItineraryComponent implements OnInit, OnDestroy{
     console.log(this.mapModel);
     // *** save mapModel to database here
     const result = this.mapService.saveMapModel(this.mapModel);
-    result.subscribe((data) => {
-      console.log(data);
-    });
+    result.subscribe({next: (data) => {
+      if(data.result === 'success'){
+        alert('Map saved successfully');
+      }
+      console.log(data.result);
+    }, error: (error) => {
+      console.log(error.error.error);
+      alert('Please enter a location before attempting to save!');
+    }});
+    ;
   }
 
   handleLoadExistingUser(mapModel: MapModel) {

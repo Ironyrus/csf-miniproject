@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -105,20 +106,26 @@ public class backendController {
                 check = true;
         }
 
+        try{
+            MapModel mapModelCheck = mongoService.getTravelItinerary(email, countries);
+            if(mapModelCheck.getCountryName().equals("error")){
+                Document d = mongoService.addTravelItinerary(mapModel, email);
+                System.out.println("New map inserted! Country: " + d.get("countryName"));
+            } else if(!check) {
+                Document d = mongoService.addTravelItinerary(mapModel, email);
+                System.out.println("New map inserted for same email! Country: " + d.get("countryName"));
+            } else {
+                UpdateResult result = mongoService.updateTravelItinerary(mapModel, email);
+                System.out.println("Map was updated! " + result);
+            }
+            JsonObject result = Json.createObjectBuilder().add("result", "success").build();
+            return ResponseEntity.status(HttpStatus.OK).body(result.toString());
 
-        MapModel mapModelCheck = mongoService.getTravelItinerary(email, countries);
-        if(mapModelCheck.getCountryName().equals("error")){
-            Document d = mongoService.addTravelItinerary(mapModel, email);
-            System.out.println("New map inserted!");
-        } else if(!check) {
-            Document d = mongoService.addTravelItinerary(mapModel, email);
-            System.out.println("New map inserted for same email!");
-        } else {
-            UpdateResult result = mongoService.updateTravelItinerary(mapModel, email);
-            System.out.println("Map was updated!");
+        }catch (Exception e){
+            JsonObject result = Json.createObjectBuilder().add("result", e.getMessage()).build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result.toString());
         }
-        // TO DO - return success or failure
-        return null;
+        
     }
 
     @GetMapping(path="/getMapModel/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -261,5 +268,80 @@ public class backendController {
         .build();
         return ResponseEntity.status(HttpStatus.OK).body(jOut.toString());
 
+    }
+
+    @DeleteMapping(path="/deleteItinerary/{email}/{country}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins="*")
+    public ResponseEntity<String> deleteItinerary(@RequestParam String auth, @PathVariable String country, @PathVariable String email)  {
+        System.out.println(email);
+        System.out.println(country);
+        mongoService.deleteItinerary(country, email);     
+        return null;
+    }
+
+    @GetMapping(path="/getPassport/{email}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @CrossOrigin(origins="*")
+    public ResponseEntity<String> getPassport(@RequestParam String auth, @PathVariable String email)  {
+        List<MapModel> mapModelArr;
+        String token = redisService.getToken(email);
+        if(token.trim().equals(auth.trim())){
+            mapModelArr = mongoService.getPassport(email);
+            System.out.println("Authentication passed. Fetching data...");
+        } else{
+            System.out.println("Authentication FAILED.");
+            JsonObject errorJson = Json.createObjectBuilder().add("ERROR", "INVALID TOKEN").build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorJson.toString());
+        }
+
+        String isDetailHidden = "";
+        String countryImg = "";
+        String countryName = "";
+        String dateTo = "";
+        String dateFrom = "";
+        String getMarkerPositions = "";
+        String getMarkerOptions = "";
+        String getDistanceFromOrigin = "";
+        String getTimeTakenFromOrigin = "";
+        String locationData = "";
+
+        JsonArrayBuilder jArrBuilder = Json.createArrayBuilder();
+
+        try {
+            for(MapModel mapModel: mapModelArr){
+                isDetailHidden = locationData = (new ObjectMapper().writeValueAsString(mapModel.getIsDetailHidden())).replaceAll("", "");
+                countryImg = (new ObjectMapper().writeValueAsString(mapModel.getCountryImg())).replaceAll("", "");
+                countryName = (new ObjectMapper().writeValueAsString(mapModel.getCountryName())).replaceAll("", "");
+                dateTo = (new ObjectMapper().writeValueAsString(mapModel.getDateTo())).replaceAll("", "");
+                dateFrom = (new ObjectMapper().writeValueAsString(mapModel.getDateFrom())).replaceAll("", "");
+                getMarkerPositions = (new ObjectMapper().writeValueAsString(mapModel.getMarkerPositions())).replaceAll("", "");
+                getMarkerOptions = (new ObjectMapper().writeValueAsString(mapModel.getMarkerOptions())).replaceAll("", "");
+                getDistanceFromOrigin = (new ObjectMapper().writeValueAsString(mapModel.getDistanceFromOrigin())).replaceAll("", "");
+                getTimeTakenFromOrigin = (new ObjectMapper().writeValueAsString(mapModel.getTimeTakenFromOrigin())).replaceAll("", "");
+                locationData = (new ObjectMapper().writeValueAsString(mapModel.getLocationData())).replaceAll("", "");
+                
+                JsonObject jOut = Json.createObjectBuilder()
+                    .add("isDetailHidden", isDetailHidden)
+                    .add("countryImg", countryImg)
+                    .add("countryName", countryName)
+                    .add("dateTo", dateTo)
+                    .add("dateFrom", dateFrom)
+                    .add("markerPositions", getMarkerPositions)
+                    .add("markerOptions", getMarkerOptions)
+                    .add("distanceFromOrigin", getDistanceFromOrigin)
+                    .add("timeTakenFromOrigin", getTimeTakenFromOrigin)
+                    .add("locationData", locationData)
+                    .build();
+
+                jArrBuilder.add(jOut);
+            }
+            
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        
+        JsonArray jArr = jArrBuilder.build();
+        return ResponseEntity.status(HttpStatus.OK).body(jArr.toString());
     }
 }

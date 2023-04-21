@@ -1,21 +1,21 @@
-<h1>Where to?</h1>
+<h1>Select a destination!</h1>
 <form [formGroup]="searchForm" (ngSubmit)="onSubmit()">
-
-    <mat-form-field style="width: 33%">
-        <mat-label>
-            Autocomplete: 
-        </mat-label>
-        <input matInput iwanAutocomplete (onAddressChange)="handleAddressChange($event)" type="text" formControlName="country" id="auto-input">
-        <mat-icon matSuffix>location_on</mat-icon>         
-    </mat-form-field>
 
     <mat-form-field class="example-full-width">
         <mat-label>
             Where to?
         </mat-label>
-        <input matInput placeholder="Where to?" formControlName="country">
+        <input matInput iwanAutocomplete (onAddressChange)="handleAddressChange($event)" type="text" formControlName="country" id="auto-input">
         <mat-icon matSuffix>location_on</mat-icon>         
     </mat-form-field>
+
+    <!-- <mat-form-field class="example-full-width">
+        <mat-label>
+            Where to?
+        </mat-label>
+        <input matInput placeholder="Where to?" formControlName="country">
+        <mat-icon matSuffix>location_on</mat-icon>         
+    </mat-form-field> -->
 
     <br>
     <br>
@@ -42,9 +42,17 @@
 
 <br><br>
 <h1>History</h1>
-<div *ngFor="let country of getCountries(); let i = index">
-    <button
-        mat-raised-button color="primary"
-        (click)="goToItinerary(country)">{{country}}</button><br>
-        <br>
+<div *ngFor="let country of countries; let i = index">
+    <table>
+        <tr>
+            <td style="width:200px">
+                <button
+                    mat-raised-button color="primary"
+                    (click)="goToItinerary(country)">{{country}}</button><br>
+            </td>
+            <td>
+                <button routerLink="/search" mat-raised-button (click)="deleteItinerary(country)" color="warn">Delete</button>
+            </td>
+        </tr>
+    </table>
 </div>

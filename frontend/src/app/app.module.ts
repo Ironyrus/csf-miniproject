@@ -26,6 +26,7 @@ import {MatCardModule} from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatTableModule} from '@angular/material/table';
 
 // https://github.com/skynet2/ngx-google-places-autocomplete
 import { GooglePlaceModule } from 'ngx-google-places-autocomplete';
@@ -33,6 +34,7 @@ import { GooglePlaceModule } from 'ngx-google-places-autocomplete';
 import { GoogleMapsModule } from '@angular/google-maps'
 import { searchBoxDirective } from './itinerary/searchBox.directive';
 import { autocompleteDirective } from './itinerary/autocomplete.directive';
+import { PassportComponent } from './passport/passport.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +44,8 @@ import { autocompleteDirective } from './itinerary/autocomplete.directive';
     LoadingSpinnerComponent,
     SearchComponent,
     searchBoxDirective,
-    autocompleteDirective
+    autocompleteDirective,
+    PassportComponent
   ],
   imports: [
     AppRoutingModule,
@@ -56,6 +59,7 @@ import { autocompleteDirective } from './itinerary/autocomplete.directive';
     MatToolbarModule,
     MatIconModule,
     MatListModule,
+    MatTableModule,
     BrowserAnimationsModule,
     LayoutModule,
     MatButtonModule,

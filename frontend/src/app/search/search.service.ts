@@ -1,13 +1,14 @@
 import { Injectable } from "@angular/core";
 import { searchModel } from "./search.model";
 import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
+import { Router } from "@angular/router";
 
 @Injectable({providedIn: 'root'})
 export class SearchService {
     fromPrevious: boolean = false;
     searchModel!: searchModel | null;
 
-    constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient, private router: Router) {}
 
     public getModel() {
         return this.searchModel;
@@ -38,4 +39,5 @@ export class SearchService {
             params: new HttpParams().set('auth', userData._token)
         });
       }
+
 }
