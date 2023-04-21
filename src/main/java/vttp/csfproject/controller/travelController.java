@@ -62,17 +62,6 @@ public class travelController {
         JsonObject jOut = jBuilder.build();
         int redisResult = redisService.saveToken(token, credentials.getEmail(), new Date(expiry.getTime() +  3600000));
         System.out.println("(Log in) Saving to redis... (2 for new token entered, 1 for token exists, 0 for failed): " + redisResult);
-        
-        //token exists, use existing token
-        if(redisResult == 1) {
-            jBuilder = Json.createObjectBuilder()
-            .add("mode", "login")
-            .add("result", result)
-            .add("username_returned", credentials.getEmail())
-            .add("password_returned", credentials.getPassword())
-            .add("token", redisService.getToken(credentials.getEmail()))
-            .add("expiresIn", expiry.getTime() +  3600000 + "");
-        }
 
         if(result.equals("success")){
             return ResponseEntity.status(HttpStatus.OK).body(jOut.toString());
