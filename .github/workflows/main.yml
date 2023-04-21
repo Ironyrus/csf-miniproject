@@ -4,10 +4,6 @@ on:
   push:
     branches: [main]
 
-runs:
-  using: 'node16'
-  main: 'main.js'
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -15,6 +11,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      runs:
+      using: 'node16'
+      main: 'main.js'
 
       - name: Use Node 16
         uses: actions/setup-node@v1
