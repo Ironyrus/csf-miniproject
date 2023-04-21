@@ -12,14 +12,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      runs:
-      using: 'node16'
-      main: 'main.js'
-
-      - name: Use Node 16
+      - name: Use Node 12
         uses: actions/setup-node@v1
         with:
-          node-version: 16.x
+          node-version: 12.x
 
       - name: Install packages
         run: yarn install --frozen-lockfile
